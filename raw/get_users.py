@@ -10,12 +10,12 @@ URL = 'https://www.garnek.pl/0/indeks/'
 DIR = 'pages'
 
 
-def _download_page(url: int, filename: str) -> str:
+def _download_page(url: int, filepath: str) -> str:
     print('Getting', url)
     response = requests.get(url)
     assert response.status_code == 200
     assert url == url
-    with open(os.path.join(DIR, filename), 'wb') as f:
+    with open(filepath, 'wb') as f:
         f.write(response.content)
     return response.text
     
@@ -33,7 +33,7 @@ def download_page(*args) -> str:
 def get_page(num: int) -> typing.Set[str]:
     response = download_page(
         '{}?p={}'.format(URL, num),
-        'page_{}.html'.format(num)
+        os.path.join(DIR, 'page_{}.html'.format(num))
     )
     results = set()
     for a, b in re.findall(r'<a href="/([^/]+)/a" title="([^"]+)">', response):
@@ -46,7 +46,7 @@ def get_page(num: int) -> typing.Set[str]:
 def main():
     if not os.path.isdir(DIR):
         os.makedirs(DIR)
-    main_page = download_page(URL, 'main.html')
+    main_page = download_page(URL, os.path.join(DIR, 'main.html'))
     max_num = max(int(s) for s in re.findall(r'\?p=([0-9]+)', main_page))
     items = set()
     with multiprocessing.Pool(25) as p:
